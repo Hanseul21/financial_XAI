@@ -1,12 +1,17 @@
 import shap
+import xgboost as xgb
 from DataRead import DataPreprocessing
 class SHAP:
-    def plot(self, model, x):
+    def shap_value(self, model, x):
         # define explainer
-        explainer = shap.TreeExplainer(model)
+        self.explainer = shap.TreeExplainer(model)
 
         # Get shapley values
-        shap_value = explainer.shap_values(x)
+        return self.explainer.shap_values(x)
 
+    def summary_plot(self, shap_value, x):
         shap.summary_plot(shap_value, x, feature_names= x.columns, plot_type='bar')
-        # shap.force_plot(explainer.expected_value, shap_value, x, matplotlib=True)
+
+    def force_plot(self, shap_value, x):
+        print(self.explainer.expected_value)
+        shap.force_plot(self.explainer.expected_value, shap_value, feature_names=x.index, matplotlib=True)

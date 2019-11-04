@@ -1,44 +1,48 @@
 from DataRead import DataPreprocessing
 from XGbooster import XGB
 from SHAP import SHAP
+from RandomForest import RF
+from dataset.Statlog.instance_selection import instance_selection
+import argparse
 import numpy as np
 
-iter = 1000
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=" Classifier for financial data. --model_name='xgb' or 'rf' ")
+    parser.add_argument('--model_name', type=str, default='xgb', help='Model Name')
+    parser.add_argument('--data_name', type=str, default='heloc', help="Data Name")
+    args = parser.parse_args()
 
-dp = DataPreprocessing()
-xgb = XGB()
-sh = SHAP()
+    dp = DataPreprocessing(args.data_name)
+    sh = SHAP()
+    x_train, y_train = dp.read_data('train')
+    x_test, y_test = dp.read_data('test')
 
-x_train, y_train = dp.read_data('train')
-x_test, y_test = dp.read_data('test')
+    if args.model_name == 'xgb':
+        classifier = XGB(args.data_name)
+    elif args.model_name == 'rf':
+        classifier = RF(args.data_name)
+    else:
+        print("{0} is not defined classifier. Please select 'xgb' or 'rf'".format(args.model_name))
+    print('classifier is set')
+    model = classifier.train(x_train, y_train)
 
-model = xgb.model(x_train, y_train)
-xgb.eval(model, x_test, y_test, 'Test')
+    IS = instance_selection(model, classifier)
 
-ins = x_test.iloc[0, :]
+    IS.selection(x_test, y_test)
 
-explainer = sh.plot(model, x_test)
+    # classifier.eval(model, x_test[0:], y_test[0:])
+    # print(classifier.result(model, x_test[0:]))
 
-#
-# train_r = np.argsort(-shap_values_train[1])
-# test_r = np.argsort(-shap_values_test[1, :])
-#
-# feature, target = dp.get_feature()
-# print('\nshapley value of training data...')
-#
+    print('Training is ended')
+    # the index of instances
+    ins = 0
 
+    # In case of rf -> shap_value shape : (2, 1046, 22) (class, ins_num, feature)
+    # In case of XGB -> shap_vaule shape : (
+    shap_value = sh.shap_value(model, x_test)
+    print('shap value')
+    print(shap_value)
 
-# tr = 1
-# for i in range(len(feature)):
-#     print((i+1), ' :', feature[train_r[i]], '\t', shap_values_train[tr, train_r[i]])
-#
-# shap.force_plot(explainer.expected_value, shap_values_train[tr, :], x_train.iloc[tr, :], matplotlib=True)
-# #plot1 = shap.force_plot(explainer.expected_value, shap_values_train, x_train)
-#
-#
-# print('\nshapley value of test data...')
-# te = 1
-# for i in range(5):
-#     print((i+1), ' :', feature[test_r[i]], '\t', shap_values_test[te, test_r[i]])
-#
-# plot2 = shap.force_plot(explainer.expected_value, shap_values_test[te, :], x_test.iloc[te, :], matplotlib=True)
+    # print(np.shape(shap_value))
+    sh.force_plot(shap_value[ins], x_test.iloc[ins])
+    # sh.summary_plot(shap_value, x_test)
