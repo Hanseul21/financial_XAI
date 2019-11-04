@@ -1,5 +1,8 @@
 import pandas as pd
 import random
+
+#
+
 features = ['CheckAccountStatus', 'DurationInMonth', 'CreditHistory',
             'Purpose', 'CreditAmount', 'SavingsAccount', 'EmploymentSince',
             'InstallmentRate', 'PersonalStatus', 'OtherDebtors',

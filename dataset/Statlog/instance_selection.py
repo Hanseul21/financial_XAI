@@ -1,6 +1,5 @@
 import random
 import numpy as np
-
 class instance_selection():
     def __init__(self, model, classifier):
         self.model = model
@@ -13,8 +12,10 @@ class instance_selection():
         prob = self.classifier.result(self.model, x)
 
         # probability differentiation (L2)
-        d_prob = [(prob[i,0] - prob[standard, 0]) * (prob[i, 0] - prob[standard, 0]) for i in range(0, len(x))]
-        prob_sorted = np.argsort(d_prob)
+        d_tmp = prob[:,0] - prob[standard, 0]
+        d_prob = [np.sqrt(d_tmp[i]*d_tmp[i]) for i in range(len(d_tmp))]
+        prob_sorted = [d_prob[i] for i in np.argsort(d_prob)]
+        print(prob_sorted)
 
         # 2) Similar Feature values
         # feature differentiation (L2)
